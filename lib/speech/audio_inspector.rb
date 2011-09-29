@@ -47,7 +47,8 @@ module Speech
     end
 
     def initialize(file)
-      self.duration = Duration.new(`ffmpeg -i #{file} 2>&1`.strip.scan(/Duration: (.*),/).first.first)
+      #string_output = `ffmpeg -i "#{file}" 2>&1`
+      self.duration = Duration.new(`ffmpeg -i "#{file}" 2>&1`.strip.scan(/Duration: (.*),/).first.first)
     end
 
   end

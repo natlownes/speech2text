@@ -31,7 +31,8 @@ module Speech
         # NOTE: kind of a hack, but if the original source is less than or equal to 1 second, we should skip ffmpeg
         puts "building chunk: #{duration_ts.inspect} and offset: #{offset_ts}"
         #puts "offset: #{ offset_ts.to_s }, duration: #{duration_ts.to_s}"
-        cmd = "ffmpeg -y -i #{splitter.original_file} -acodec copy -vcodec copy -ss #{offset_ts} -t #{duration_ts} #{self.chunk}"# >/dev/null 2>&1"
+        cmd = %{ffmpeg -y -i "#{splitter.original_file}" -acodec copy -vcodec copy -ss #{offset_ts} -t #{duration_ts} "#{self.chunk}">/dev/null 2>&1}
+        puts cmd
         if system(cmd)
           self
         else
@@ -42,14 +43,14 @@ module Speech
       # convert the audio file to flac format
       def to_flac
         puts "convert: #{chunk} to flac"
-        if system("flac #{chunk}")
+        if system(%{flac "#{chunk}"})
           puts "success?"
           self.flac_chunk = chunk.gsub(/#{File.extname(chunk)}$/, ".flac")
           # convert the audio file to 16K
-          self.flac_rate = `ffmpeg -i #{self.flac_chunk} 2>&1`.strip.scan(/Audio: flac, (.*) Hz/).first.first.strip
+          self.flac_rate = `ffmpeg -i "#{self.flac_chunk}" 2>&1`.strip.scan(/Audio: flac, (.*) Hz/).first.first.strip
           down_sampled = self.flac_chunk.gsub(/\.flac$/, '-sampled.flac')
-          if system("ffmpeg -i #{self.flac_chunk} -ar 16000 -y #{down_sampled} >/dev/null 2>&1")
-            system("mv #{down_sampled} #{self.flac_chunk} 2>&1 >/dev/null")
+          if system(%{ffmpeg -i "#{self.flac_chunk}" -ar 16000 -y "#{down_sampled}" >/dev/null 2>&1})
+            system(%{mv "#{down_sampled}" "#{self.flac_chunk}" 2>&1 >/dev/null})
             self.flac_rate = 16000
           else
             raise "failed to convert to lower audio rate"
